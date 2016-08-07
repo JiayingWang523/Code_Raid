@@ -32,6 +32,7 @@ public class UnityChanControlScriptWithRgidBody : MonoBehaviour
 	// キャラクターコントローラ（カプセルコライダ）の参照
 	private CapsuleCollider col;
 	private Rigidbody rb;
+    private CharacterController controller;
 	// キャラクターコントローラ（カプセルコライダ）の移動量
 	private Vector3 velocity;
 	// CapsuleColliderで設定されているコライダのHeiht、Centerの初期値を収める変数
@@ -57,6 +58,7 @@ public class UnityChanControlScriptWithRgidBody : MonoBehaviour
 		// CapsuleColliderコンポーネントを取得する（カプセル型コリジョン）
 		col = GetComponent<CapsuleCollider>();
 		rb = GetComponent<Rigidbody>();
+        controller = GetComponent<CharacterController>();
 		//メインカメラを取得する
 		cameraObject = GameObject.FindWithTag("MainCamera");
 		// CapsuleColliderコンポーネントのHeight、Centerの初期値を保存する
@@ -79,9 +81,11 @@ public class UnityChanControlScriptWithRgidBody : MonoBehaviour
 		
 		
 		// 以下、キャラクターの移動処理
-		velocity = new Vector3(0, 0, v);		// 上下のキー入力からZ軸方向の移動量を取得
+		velocity = new Vector3(h, 0, v);		// 上下のキー入力からZ軸方向の移動量を取得
+        velocity = velocity.normalized * v;
 		// キャラクターのローカル空間での方向に変換
 		velocity = transform.TransformDirection(velocity);
+
 		//以下のvの閾値は、Mecanim側のトランジションと一緒に調整する
 		if (v > 0.1) {
 			velocity *= forwardSpeed;		// 移動速度を掛ける
@@ -101,13 +105,15 @@ public class UnityChanControlScriptWithRgidBody : MonoBehaviour
 				}
 			}
 		}
-		
 
-		// 上下のキー入力でキャラクターを移動させる
-		transform.localPosition += velocity * Time.fixedDeltaTime;
+        // 上下のキー入力でキャラクターを移動させる
+        controller.Move(velocity * Time.fixedDeltaTime);
 
-		// 左右のキー入力でキャラクタをY軸で旋回させる
-		transform.Rotate(0, h * rotateSpeed, 0);	
+        if (v == 0)
+        {
+            // 左右のキー入力でキャラクタをY軸で旋回させる
+            transform.Rotate(0, h * rotateSpeed, 0);
+        }
 	
 
 		// 以下、Animatorの各ステート中での処理
